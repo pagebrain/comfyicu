@@ -1,0 +1,27 @@
+apiVersion: skaffold/v4beta2
+kind: Config
+build:
+  artifacts:
+  - image: ghcr.io/pagebrain/comfyicu
+    context: .
+    sync:
+      manual:
+      - src: '**/*.js'
+        dest: .
+      - src: '**/*.jsx'
+        dest: .
+      - src: '**/*.ts'
+        dest: .
+      - src: '**/*.tsx'
+        dest: .
+    docker:
+      buildArgs:
+        ENV: production
+  tagPolicy:
+    gitCommit: {}
+manifests:
+  rawYaml:
+  - ./k8s.yml
+  - ./proxy.yml
+deploy:
+  kubectl: {}

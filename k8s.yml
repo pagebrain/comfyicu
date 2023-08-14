@@ -1,0 +1,95 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: comfyicu
+spec:
+  selector:
+    matchLabels:
+      app: comfyicu
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: comfyicu
+    spec:
+      containers:
+      - name: comfyicu
+        image: ghcr.io/pagebrain/comfyicu
+        resources:
+          requests:
+            cpu: 1m
+        env:
+        - name: ACCOUNT_ID
+          value: CLOUDFLARE_CREDS
+        - name: TOKEN
+          value: CLOUDFLARE_CREDS
+        - name: ACCESS_KEY_ID
+          value: CLOUDFLARE_CREDS
+        - name: SECRET_ACCESS_KEY
+          value: CLOUDFLARE_CREDS
+        - name: BUCKET_NAME
+          value: CLOUDFLARE_CREDS
+        - name: ENV
+          value: production
+        livenessProbe:
+          httpGet:
+            path: /api/healthz
+            port: 80
+            scheme: HTTP
+          initialDelaySeconds: 10
+          periodSeconds: 10
+          timeoutSeconds: 5
+          successThreshold: 1
+          failureThreshold: 3
+        readinessProbe:
+          httpGet:
+            path: /api/healthz
+            port: 80
+            scheme: HTTP
+          initialDelaySeconds: 10
+          periodSeconds: 10
+          timeoutSeconds: 5
+        ports:
+        - containerPort: 80
+          protocol: TCP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: comfyicu
+  name: comfyicu
+spec:
+  ports:
+  - port: 80
+    targetPort: 80
+    protocol: TCP
+  selector:
+    app: comfyicu
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: comfyicu
+  annotations:
+    kubernetes.io/ingress.class: nginx
+    nginx.ingress.kubernetes.io/ssl-redirect: "false"
+    # cert-manager.io/cluster-issuer: letsencrypt-prod
+    nginx.org/client-max-body-size: 3m
+    nginx.ingress.kubernetes.io/proxy-body-size: 3m
+spec:
+  # tls:
+  # - hosts:
+  #   - comfy.icu
+  #   secretName: comfy-icu
+  rules:
+  - host: comfy.icu
+    http: &http_rules
+      paths:
+      - path: /
+        pathType: ImplementationSpecific
+        backend:
+          service:
+            name: comfyicu
+            port:
+              number: 80

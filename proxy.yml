@@ -1,0 +1,107 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: imgproxy
+spec:
+  selector:
+    matchLabels:
+      app: imgproxy
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: imgproxy
+    spec:
+      containers:
+      - name: imgproxy
+        image: darthsim/imgproxy:v3.7.1
+        resources:
+          requests:
+            cpu: 1m
+        env:
+        - name: IMGPROXY_JPEG_PROGRESSIVE
+          value: "true"
+        - name: IMGPROXY_ENFORCE_WEBP
+          value: "true"
+        - name: IMGPROXY_ENABLE_WEBP_DETECTION
+          value: "true"
+        - name: IMGPROXY_BIND
+          value: :8080
+        - name: IMGPROXY_FORMAT_QUALITY
+          value: jpeg=85,webp=85
+        - name: IMGPROXY_PREFERRED_FORMATS
+          value: jpeg,webp
+        - name: IMGPROXY_ALLOWED_SOURCES
+          value: https://r2.comfy.icu/
+        - name: IMGPROXY_READ_TIMEOUT
+          value: "60"
+        - name: IMGPROXY_DOWNLOAD_TIMEOUT
+          value: "60"
+        - name: IMGPROXY_KEEP_ALIVE_TIMEOUT
+          value: "60"
+        - name: IMGPROXY_WRITE_TIMEOUT
+          value: "60"
+        livenessProbe:
+          httpGet:
+            path: /
+            port: 8080
+            scheme: HTTP
+          initialDelaySeconds: 10
+          periodSeconds: 10
+          timeoutSeconds: 5
+          successThreshold: 1
+          failureThreshold: 3
+        readinessProbe:
+          httpGet:
+            path: /
+            port: 8080
+            scheme: HTTP
+          initialDelaySeconds: 10
+          periodSeconds: 10
+          timeoutSeconds: 5
+        ports:
+        - containerPort: 8080
+          protocol: TCP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: imgproxy
+  name: imgproxy
+spec:
+  ports:
+  - port: 80
+    targetPort: 8080
+    protocol: TCP
+  selector:
+    app: imgproxy
+
+---
+
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: imgproxy
+  annotations:
+    kubernetes.io/ingress.class: nginx
+    nginx.ingress.kubernetes.io/ssl-redirect: "false"
+    # cert-manager.io/cluster-issuer: letsencrypt-prod
+    nginx.org/client-max-body-size: 3m
+    nginx.ingress.kubernetes.io/proxy-body-size: 3m
+spec:
+  # tls:
+  # - hosts:
+  #   - comfy.icu
+  #   secretName: comfy-icu
+  rules:
+  - host: img.comfy.icu
+    http: &http_rules
+      paths:
+      - path: /
+        pathType: ImplementationSpecific
+        backend:
+          service:
+            name: imgproxy
+            port:
+              number: 80

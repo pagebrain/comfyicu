@@ -1,0 +1,150 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --foreground-rgb: 0, 0, 0;
+  --background-start-rgb: 214, 219, 220;
+  --background-end-rgb: 255, 255, 255;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --foreground-rgb: 255, 255, 255;
+    --background-start-rgb: 0, 0, 0;
+    --background-end-rgb: 0, 0, 0;
+  }
+}
+
+body {
+  color: rgb(var(--foreground-rgb));
+  background: linear-gradient(
+      to bottom,
+      transparent,
+      rgb(var(--background-end-rgb))
+    )
+    rgb(var(--background-start-rgb));
+    background-image: url("/bg.webp");
+}
+
+
+.page {
+  display: flex;
+  min-height: 100vh;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+#form-file-upload {
+  height: 16rem;
+  width: 28rem;
+  max-width: 100%;
+  text-align: center;
+  position: relative;
+  cursor: pointer;
+}
+
+#input-file-upload {
+  display: none;
+}
+
+
+
+
+#label-file-upload {
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-width: 1px;
+  border-radius: 1rem;
+  /* border-style: dashed; */
+  border-color: rgba(223, 239, 254, 0.137);
+  /* background-color: #0e0e0e; */
+  cursor: pointer;
+
+  background: linear-gradient(145.37deg, rgba(255, 255, 255, 0.09) -8.75%, rgba(255, 255, 255, 0.027) 83.95%);
+  box-shadow: rgb(0 0 0 / 10%) 0px 5px 30px -5px;
+  backdrop-filter: blur(12px);
+}
+
+#label-file-upload:hover {
+  border-color: rgba(223, 239, 254, 0.2);
+}
+
+#label-file-upload.drag-active {
+  background-color: rgba(255, 255, 255, 0.2) ;
+}
+
+.upload-button {
+  cursor: pointer;
+  padding: 0.25rem;
+  font-size: 1rem;
+  border: none;
+  font-family: 'Oswald', sans-serif;
+  background-color: transparent;
+}
+
+.upload-button:hover {
+  text-decoration-line: underline;
+}
+
+#drag-file-element {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  border-radius: 1rem;
+  top: 0px;
+  right: 0px;
+  bottom: 0px;
+  left: 0px;
+}
+
+
+
+.simple-spinner {
+  width: 30px;
+  height: 30px;
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.simple-spinner span {
+  display: block;
+  width: 30px;
+  height: 30px;
+  border: 3px solid transparent;
+  border-radius: 50%;
+  border-right-color: rgba(255, 255, 255, 0.7);
+  animation: spinner-anim 0.8s linear infinite;
+}
+
+@keyframes spinner-anim {
+  from {
+    transform: rotate(0);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+h1 {
+  color: rgba(255, 255, 255, 0.8);
+}
+h1 span {
+  color: rgba(3, 102, 214, 0.8);
+}
+h3, p {
+  color: rgba(239, 247, 255, 0.616);
+}
+
+a, a:visited {
+  color: rgba(239, 247, 255, 0.516);
+}
+
+a:hover {
+  color: rgba(239, 247, 255, 0.8);
+}
