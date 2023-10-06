@@ -1,7 +1,11 @@
+import Image from 'next/image'
 import { Inter } from 'next/font/google'
 
-const inter = Inter({ subsets: ['latin'] })
 
+import { app } from '../components/app'
+
+const inter = Inter({ subsets: ['latin'] })
+import Script from 'next/script'
 
 import { useRef, useState } from 'react'
 
@@ -97,46 +101,89 @@ export default function Home() {
 			handleFile(e.target.files);
 		}
 	};
+
+	async function uploadFile(image) {
+		const body = new FormData();
+		body.append("file", image);
+		let data;
+		try {
+			const res = await fetch("/api/upload", {
+				method: "POST",
+				body
+			});
+			if (!res.ok) {
+				throw new Error(await res.text())
+			}
+			data = await res.json();
+		} catch (e) {
+			console.log(e)
+			setErrorMsg("Sorry, there was an error uploading file to server.")
+			setIsLoading(false)
+		}
+		if (data && data.status == 'success') {
+			router.push('/c/' + data.id)
+		}
+	}
+	async function readJsonAsync(file) {
+		return new Promise((resolve, reject) => {
+			const reader = new FileReader();
+
+			reader.onload = function (event) {
+				try {
+					const jsonData = JSON.parse(event.target.result);
+					resolve(jsonData);
+				} catch (error) {
+					reject(error);
+				}
+			};
+
+			reader.onerror = function () {
+				reject(new Error('Error reading the file.'));
+			};
+
+			reader.readAsText(file);
+		});
+	}
+
 	async function handleFile(files) {
 		setErrorMsg("")
 		setIsLoading(true);
 		const image = files[0];
+		// console.log(image)
 		let metadata
-		try {
-			metadata = await getPngMetadata(image)
-			console.log("metadata", metadata)
-		} catch (e) {
-			setErrorMsg("Sorry, there was an error parsing metadata, likely an invalid ComfyUI PNG was provided.")
+		if (image.type == 'application/json') {
+			try {
+				await readJsonAsync(files[0])
+			} catch (e) {
+				setErrorMsg("Sorry, the JSON doesn't seem valid.")
+				setIsLoading(false)
+				console.log(e)
+				return
+			}
+			await uploadFile(image);
+			return
+		} else if (image.type == 'image/png') {
+			try {
+				metadata = await getPngMetadata(image)
+				console.log("metadata", metadata)
+			} catch (e) {
+				setErrorMsg("Sorry, there was an error parsing metadata, likely an invalid ComfyUI PNG was provided.")
+				setIsLoading(false)
+				console.log(e)
+				return
+			}
+			if (!metadata || metadata === undefined || Object.keys(metadata).length === 0) {
+				setErrorMsg("Sorry, there was an error parsing metadata, likely an invalid ComfyUI PNG was provided.")
+				setIsLoading(false)
+				return
+			}
+			await uploadFile(image);
+			return
+		} else {
+			setErrorMsg("Sorry, invalid file format. Only valid ComfyUI JSON and PNG files are accepted.")
 			setIsLoading(false)
-			console.log(e)
 			return
 		}
-		if (metadata && metadata !== undefined && Object.keys(metadata).length !== 0) {
-			const body = new FormData();
-			body.append("file", image);
-			let data;
-			try {
-				const res = await fetch("/api/upload", {
-					method: "POST",
-					body
-				});
-				if (!res.ok) {
-					throw new Error(await res.text())
-				}
-				data = await res.json();
-			} catch (e) {
-				console.log(e)
-				setErrorMsg("Sorry, there was an error uploading file to server.")
-				setIsLoading(false)
-			}
-			if (data && data.status == 'success') {
-				router.push('/c/' + data.id)
-			}
-		} else {
-			setErrorMsg("Sorry, there was an error parsing metadata, likely an invalid ComfyUI PNG was provided.")
-			setIsLoading(false)
-		}
-
 	}
 	function chunk(array, chunkSize = 4) {
 		let out = []
@@ -179,10 +226,10 @@ export default function Home() {
 					}
 					{!isLoading &&
 						<form id="form-file-upload" onDragEnter={handleDrag} onSubmit={(e) => e.preventDefault()} >
-							<input ref={inputRef} type="file" id="input-file-upload" multiple={false} onChange={handleChange} accept="image/png" />
+							<input ref={inputRef} type="file" id="input-file-upload" multiple={false} onChange={handleChange} accept="image/png,application/json" />
 							<label id="label-file-upload" htmlFor="input-file-upload" className={dragActive ? "drag-active" : ""}>
 								<div>
-									<p>Drag and drop or click to upload ComfyUI PNG</p>
+									<p>Drag and drop or click to upload ComfyUI PNG or JSON</p>
 								</div>
 							</label>
 							{dragActive && <div id="drag-file-element" onDragEnter={handleDrag} onDragLeave={handleDrag} onDragOver={handleDrag} onDrop={handleDrop}></div>}

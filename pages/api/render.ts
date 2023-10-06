@@ -2,11 +2,6 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 const fs = require('fs');
 
-import {
-  S3Client,
-  GetObjectCommand
-} from "@aws-sdk/client-s3";
-
 function readStream(input) {
   return new Promise((resolve, reject) => {
     const chunks = [];
@@ -52,6 +47,14 @@ async function getPngMetadata(input) {
   return txtChunks;
 }
 
+
+const zlib = require('zlib');
+import {
+  S3Client,
+  GetObjectCommand
+} from "@aws-sdk/client-s3";
+import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
+
 const S3 = new S3Client({
   region: "auto",
   endpoint: `https://${process.env.ACCOUNT_ID}.r2.cloudflarestorage.com`,
@@ -66,7 +69,7 @@ export default async function handler(
   res: NextApiResponse
 ) {
   const { id } = req.query;
-  const url = `https://r2.comfy.icu/${id}.png`
+  let url = `https://r2.comfy.icu/${id}.png`
   let obj;
   try {
     obj = await S3.send(new GetObjectCommand({
@@ -74,14 +77,29 @@ export default async function handler(
       Key: id + ".png"
     }));
   } catch (e) {
-    return res.status(404).end("Error")
+    try {
+      obj = await S3.send(new GetObjectCommand({
+        Bucket: process.env.BUCKET_NAME,
+        Key: id + ".json.gz"
+      }));
+    } catch (e2) {
+      return res.status(404).end("Error")
+    }
   }
 
   if (obj === undefined) {
     return res.status(500).end("Sorry, please try refreshing again")
   }
 
-  const comfyJson = await getPngMetadata(obj.Body)
+  let comfyJson;
+  if (obj.ContentType == "application/json") {
+    comfyJson = { workflow: zlib.gunzipSync(await obj.Body?.transformToByteArray()) }
+    url = 'https://comfy.icu/comfyui.webp'
+  } else {
+    comfyJson = await getPngMetadata(obj.Body)
+  }
+
+  // console.log(comfyJson)
 
   res.setHeader('content-type', 'text/html')
 
