@@ -1,14 +1,14 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
-  async rewrites() {
-    return [
-      {
-        source: '/c/:path*',
-        destination: '/api/render?id=:path*',
-      },
-    ]
-  },
+  // async rewrites() {
+  //   return [
+  //     {
+  //       source: '/c/:path*',
+  //       destination: '/api/render?id=:path*',
+  //     },
+  //   ]
+  // },
   skipTrailingSlashRedirect: true,
   typescript: {
     // !! WARN !!

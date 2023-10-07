@@ -122,7 +122,6 @@ export default async function handler(
           <link rel="stylesheet" type="text/css" href="/lib/litegraph.css" />
           <link rel="stylesheet" type="text/css" href="/style.css" />
           <script type="text/javascript" src="/lib/litegraph.core.js"></script>
-          <script type="text/javascript" src="/lib/litegraph.extensions.js" defer></script>
           <script type="module">
               window.defaultGraph = `+ comfyJson.workflow + `;
               import { app } from "/scripts/app.js";

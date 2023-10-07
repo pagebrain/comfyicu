@@ -148,3 +148,9 @@ a, a:visited {
 a:hover {
   color: rgba(239, 247, 255, 0.8);
 }
+
+.blue {
+  --rgb: 3, 102, 214;
+  color: rgba(var(--rgb), 0.8);
+}
+.blue:hover { color: rgba(var(--rgb), 1); }
