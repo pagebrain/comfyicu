@@ -1,0 +1,21 @@
+version: '3.1'
+services:
+  db:
+    image: postgres:16
+    restart: always
+    environment:
+      POSTGRES_PASSWORD: devpwd
+      POSTGRES_DB: comfyui
+      POSTGRES_USER: comfyui
+    ports:
+      - 5432:5432
+  redis:
+    image: redis:6
+    restart: always
+    ports:
+      - 6379:6379
+  adminer:
+    image: adminer
+    restart: always
+    ports:
+      - 8080:8080

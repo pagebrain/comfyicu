@@ -14357,14 +14357,6 @@ LGraphNode.prototype.executeAction = function(action)
             };
     }
 })(this);
-/**
- * Changes the background color of the canvas.
- *
- * @method updateBackground
- * @param {image} String
- * @param {clearBackgroundColor} String
- * @
- */
 LGraphCanvas.prototype.updateBackground = function (image, clearBackgroundColor) {
 	this._bg_img = new Image();
 	this._bg_img.name = image;
@@ -14378,7 +14370,6 @@ LGraphCanvas.prototype.updateBackground = function (image, clearBackgroundColor)
 	this.clear_background_color = clearBackgroundColor;
 	this._pattern = null
 }
-
 if (typeof exports != "undefined") {
     exports.LiteGraph = this.LiteGraph;
     exports.LGraph = this.LGraph;
@@ -14389,5 +14380,6 @@ if (typeof exports != "undefined") {
     exports.LGraphCanvas = this.LGraphCanvas;
     exports.ContextMenu = this.ContextMenu;
 }
+
 
 

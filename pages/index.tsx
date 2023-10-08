@@ -3,11 +3,11 @@ import { Inter } from 'next/font/google'
 
 
 import { app } from '../components/app'
-
+import { useSession, signIn, signOut } from "next-auth/react"
 const inter = Inter({ subsets: ['latin'] })
 import Script from 'next/script'
-
 import { useRef, useState } from 'react'
+import { popupCenter } from '@/lib/utils'
 
 function getPngMetadata(file) {
 	return new Promise((r) => {
@@ -58,10 +58,14 @@ function getPngMetadata(file) {
 
 import { useRouter } from 'next/navigation';
 import Head from 'next/head'
+import Link from 'next/link'
+import NavBar from '@/components/NavBar'
+import Footer from '@/components/Footer'
 export default function Home() {
 
 	const [dragActive, setDragActive] = useState(false);
 	const [isLoading, setIsLoading] = useState(false);
+	const { data: session, status } = useSession();
 
 	const [errorMsg, setErrorMsg] = useState("");
 
@@ -213,6 +217,7 @@ export default function Home() {
 				<meta property="og:description" content="Imgur for sharing ComfyUI workflows" />
 				<meta property="og:image" content="https://comfy.icu/comfyui.webp" />
 			</Head>
+			<NavBar session={session} status={status}/>
 			<div
 				className={`flex min-h-screen flex-col items-center p-24 ${inter.classNameName}`}
 			>
@@ -246,21 +251,16 @@ export default function Home() {
 						{gallery.map((f, j) => (
 							<div key={j} className="">
 								{f.map((e, i) => (
-									<a key={i} href={e.url}><img className='rounded-lg mb-4 w-full' src={e.img} loading="lazy" /></a>
+									<Link key={i} href={e.url}><img className='rounded-lg mb-4 w-full' src={e.img} loading="lazy" /></Link>
 								)
 								)}
 							</div>
 						))}
 					</div>
 				</div>
-
-
-				<footer className="flex h-[80px] items-center justify-center text-center">
-
-					<a className="rounded-sm outline-none transition-transform duration-200 ease-in-out text-slate-12 hover:text-slate-10  inline-flex items-center gap-2" target="_blank" href="https://github.com/pagebrain/comfyicu">Github</a>
-
-				</footer>
+				
 			</div>
+			<Footer/>
 		</>
 	)
 }

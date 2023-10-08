@@ -52,6 +52,8 @@ import {
     GetObjectCommand
 } from "@aws-sdk/client-s3";
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
+import prisma from "./prisma";
+import { WorkflowFormat } from "@prisma/client";
 
 const S3 = new S3Client({
     region: "auto",
@@ -63,24 +65,19 @@ const S3 = new S3Client({
 });
 
 export async function getWorkflow(id: string) {
-
-
-    let obj;
-    try {
-        obj = await S3.send(new GetObjectCommand({
-            Bucket: process.env.BUCKET_NAME,
-            Key: id + ".png"
-        }));
-    } catch (e) {
-        try {
-            obj = await S3.send(new GetObjectCommand({
-                Bucket: process.env.BUCKET_NAME,
-                Key: id + ".json.gz"
-            }));
-        } catch (e2) {
-            throw new Error("Not found")
-        }
+    const workflow = await prisma.workflow.findUnique({where: {id}})
+    if(!workflow){
+        throw new Error("Not found")
     }
+    let key = id + ".png"
+    // console.log(workflow)
+    if(workflow.format == WorkflowFormat.JSON){
+        key = id + ".json.gz"
+    }
+    const obj = await S3.send(new GetObjectCommand({
+                Bucket: process.env.BUCKET_NAME,
+                Key: key
+    }));
 
     if (obj === undefined) {
         throw new Error("Sorry, please try refreshing again")
@@ -88,7 +85,7 @@ export async function getWorkflow(id: string) {
 
     let comfyJson;
     if (obj.ContentType == "application/json") {
-        comfyJson = { workflow: zlib.gunzipSync(await obj.Body?.transformToByteArray()) }
+        comfyJson = { workflow: zlib.gunzipSync(await obj.Body?.transformToByteArray()).toString()}
         comfyJson.url = 'https://comfy.icu/comfyui.webp'
     } else {
         comfyJson = await getPngMetadata(obj.Body)

@@ -30,6 +30,10 @@ function getRandomInt(min, max) {
 }
 import fs from "fs";
 import { IncomingForm } from 'formidable';
+import prisma from '@/lib/prisma';
+import { getServerSession } from "next-auth"
+import { authOptions } from './auth/[...nextauth]';
+import { WorkflowFormat } from '@prisma/client';
 
 export const config = {
   api: {
@@ -47,7 +51,8 @@ export default async function handler(
   // const resp = require('crypto').randomBytes(48, function(err, buffer) {
   //   return buffer.toString('base64');
   // });
-
+  const session = await getServerSession(req, res, authOptions)
+  const userId = session ? session.userId : null
   try {
 
     const crypto = require('crypto');
@@ -65,50 +70,47 @@ export default async function handler(
       // const bytes = await file.arrayBuffer()
       // const buffer = Buffer.from(bytes)
 
-      console.log(files, file, file.filepath)
+      // console.log(files, file, file.filepath)
       // return res.status(200).json({"PATH": file.filepath})
 
+      
+      
+      let buff;
+      let request;
       if (file.mimetype == "image/png") {
-        const data = fs.readFileSync(file.filepath);
-
-        // fs.writeFileSync(`${id}.png`, data)
-        // console.log(`open ${id}.png to see the uploaded file`)
-
-        // const presignedUrl = await getSignedUrl(S3, new PutObjectCommand({
-        //   Bucket: process.env.BUCKET_NAME,
-        //   Key: id + ".png",
-        //   ContentType: "image/png",
-        //   ACL: 'public-read'
-        // }), {
-        //   expiresIn: 60 * 5 // 5 minutes
-        // });
-
-        const presignedUrl = await S3.send(new PutObjectCommand({
+        buff = fs.readFileSync(file.filepath);
+        request = {
           Bucket: process.env.BUCKET_NAME,
           Key: id + ".png",
           ContentType: "image/png",
           ACL: 'public-read',
-          Body: data,
-        }));
-
+          Body: buff,
+        }
       } else if (file.mimetype == "application/json") {
         const data = fs.readFileSync(file.filepath);
         const compact = JSON.stringify(JSON.parse(data))
-        const compressedStringAsBuffer = zlib.gzipSync(compact);
-
-        const presignedUrl = await S3.send(new PutObjectCommand({
+        buff = zlib.gzipSync(compact);
+        request = {
           Bucket: process.env.BUCKET_NAME,
           Key: id + ".json.gz",
           ContentType: 'application/json',
           ContentEncoding: 'gzip',
           ACL: 'public-read',
-          Body: compressedStringAsBuffer,
-        }));
+          Body: buff,
+        }
       } else {
         return res.status(500).json({ error: 'Unknown format.' });
       }
-
-      // Do something with the uploaded file, e.g., save it to a database, process it, etc.
+      //Creating DB entry before uploading to S3, so upload fails when ID collisions occur
+      const workflow = await prisma.workflow.create({
+        data: {
+          id,
+          user_id: userId,
+          format: file.mimetype == "image/png" ? WorkflowFormat.PNG : WorkflowFormat.JSON,
+          size: Buffer.byteLength(buff)
+        }
+      })
+      const resp = await S3.send(new PutObjectCommand(request));
 
       return res.status(200).json({ status: `success`, id: id });
     });

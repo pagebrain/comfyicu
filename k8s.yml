@@ -20,15 +20,25 @@ spec:
             cpu: 1m
         env:
         - name: ACCOUNT_ID
-          value: CLOUDFLARE_CREDS
+          value: ***
         - name: TOKEN
-          value: CLOUDFLARE_CREDS
+          value: ***
         - name: ACCESS_KEY_ID
-          value: CLOUDFLARE_CREDS
+          value: ***
         - name: SECRET_ACCESS_KEY
-          value: CLOUDFLARE_CREDS
+          value: ***
+        - name: DATABASE_URL
+          value: ***
+        - name: NEXTAUTH_URL
+          value: ***
+        - name: GOOGLE_CLIENT_ID
+          value: ***
+        - name: GOOGLE_CLIENT_SECRET
+          value: ***
+        - name: NEXTAUTH_SECRET
+          value: ***
         - name: BUCKET_NAME
-          value: CLOUDFLARE_CREDS
+          value: ***
         - name: ENV
           value: production
         livenessProbe:
