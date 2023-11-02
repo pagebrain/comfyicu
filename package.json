@@ -5,7 +5,7 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "start": "next start -p 80",
+    "start": "next start -p 8080",
     "lint": "next lint"
   },
   "dependencies": {
@@ -18,11 +18,11 @@
     "@types/react-dom": "18.2.7",
     "autoprefixer": "10.4.14",
     "eslint": "8.47.0",
-    "eslint-config-next": "13.4.13",
+    "eslint-config-next": "13.5.6",
     "formidable": "^3.5.0",
-    "next": "13.4.13",
+    "next": "13.5.6",
     "next-auth": "^4.23.2",
-    "postcss": "8.4.27",
+    "postcss": "8.4.31",
     "react": "18.2.0",
     "react-dom": "18.2.0",
     "tailwindcss": "3.3.3",

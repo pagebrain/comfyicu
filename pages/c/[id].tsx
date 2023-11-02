@@ -28,6 +28,8 @@ export default function Home({ workflow }) {
 
   const router = useRouter();
   useEffect(() => {
+    console.log("USE EFFECT 1")
+    load(workflow)
     const exitingFunction = () => {
       console.log("exiting...");
     };
@@ -47,23 +49,31 @@ export default function Home({ workflow }) {
   }, []);
 
   async function load(w){
+    console.log("LOAD", w)
+    if(!w || !w.workflow){
+      return
+    }
+    try {
+    const wdata = JSON.parse(w.workflow)
+    localStorage.setItem("workflow", w.workflow);
       window.app.clean();
       await window.app.setup();
       window.graph = window.app.graph;
-      window.defaultGraph = w;
+      window.defaultGraph =wdata;
       // console.log("window.defaultGraph", window.defaultGraph, "workflow.workflow",w)
-      window.app.loadGraphData(w);
-  }
-
-  useEffect(() => {
-    try {
-      const w = JSON.parse(workflow.workflow)
-      load(w)
+      window.app.loadGraphData(wdata);
     } catch (error) {
       console.error(error)
     }
+  }
+
+  // useEffect(() => {
+  //   console.log("USE EFFECT 2")
     
-  }, [workflow]);
+  //     load(workflow)
+
+    
+  // }, [workflow]);
 
   return (<>
     <Head>
